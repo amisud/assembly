@@ -1,0 +1,98 @@
+import time
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException
+from selenium.webdriver.common.action_chains import ActionChains
+
+#Initiate a driver to launch and close a browser
+class Driver:
+    driver = webdriver.Chrome()
+
+    def closer(self):
+        self.driver.close()
+
+# Count the occurence of Email text box on the home page of the website
+class EmailCount(Driver):
+   browser = 0
+
+   def __init__(self):
+      self.EmailFields = []
+      self.count = 0
+      self.browser = Driver.driver
+
+   def getEmailFields(self):
+        self.browser.maximize_window()
+        self.browser.get("https://joinassembly.com/")
+        emailFields = self.browser.find_elements_by_name("EMAIL")
+        if(emailFields):
+            print("Total number of Email fields: ",len(emailFields))
+        else:
+            print("No Email field found")
+
+#Enter one valid and one invalid email to test the behavior
+class EnterEmail(Driver):
+    browser = 0
+    time = 0
+
+    def __init__(self):
+        self.browser = Driver.driver
+    def enter_wrong_email(self):
+        self.browser.find_element_by_xpath("//*[@id='reviews']/section[5]/div[2]/div/div/div/form/div/input").send_keys("abc@gmail.com")
+        self.browser.find_element_by_xpath("//*[@id='reviews']/section[5]/div[2]/div/div/div/form/div/span[2]/button").click()
+        placeholder_text = self.browser.find_element_by_xpath("//*[@id='reviews']/section[5]/div[2]/div/div/div/form/div/input").get_attribute('placeholder')
+        assert placeholder_text == "Enter your work email"
+
+    def enter_correct_email(self):
+        self.browser.find_element_by_xpath("//*[@id='reviews']/section[5]/div[2]/div/div/div/form/div/input").clear()
+        time.sleep(2)
+        self.browser.find_element_by_xpath("//*[@id='reviews']/section[5]/div[2]/div/div/div/form/div/input").send_keys("abc@carrothr.com")
+        self.browser.find_element_by_xpath("//*[@id='reviews']/section[5]/div[2]/div/div/div/form/div/span[2]/button").click()
+        time.sleep(2)
+        element = self.browser.find_element_by_xpath("//*[@id='root']/div/div[2]/div/div[2]/div/div/h5").text
+        assert element == "Check your email"
+        self.browser.back()
+        time.sleep(2)
+
+#Feature tab functionality check and Contact Us chatbot
+class FeatureTab(Driver):
+    browser = 0
+
+    def __init__(self):
+        self.browser = Driver.driver
+
+    def clickFeaturesTab(self):
+        self.browser.find_element_by_partial_link_text("Features").click()
+        recognised = self.browser.find_element_by_xpath("//*[@id='features']/div/div/div[1]/div[1]/ul/li[1]/a/h6")
+        if (recognised == self.browser.switch_to.active_element):
+            print("Recognition tab is not highlighted")
+        else:
+            print("Recognition tab is highlighted")
+        time.sleep(5)
+        AnB = self.browser.find_element_by_xpath("//*[@id='features']/div/div/div[1]/div[1]/ul/li[2]/a/h6").click()
+        time.sleep(5)
+        assert (AnB != self.browser.switch_to.active_element)
+        assert (recognised != self.browser.switch_to.active_element)
+        CnR = self.browser.find_element_by_xpath("//*[@id='features']/div/div/div[1]/div[1]/ul/li[3]/a/h6")
+        assert (CnR != self.browser.switch_to.active_element)
+
+    def clickContactUS(self):
+        self.browser.find_element_by_partial_link_text("Contact Us").click()
+"""       time.sleep(2)
+        size = self.browser.find_elements_by_tag_name("iframe").size();
+        print("size = ",size)
+        self.browser.switch_to_frame(0)
+        self.browser.find_element_by_xpath("//*[@id='intercom-container']/div/div/div[1]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div/div/div/div/div/div/div/div/input").send_keys("Slack")
+        self.browser.find_element_by_xpath("//*[@id='intercom-container']/div/div/div[1]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div/div/div/div/div/div/div/div/button").click()
+        search_text = self.browser.find_element_by_xpath("//*[@id='intercom-container']/div/div/div[1]/div[3]/div/div/div[3]/div/div/div/div/div/div/div/div/div/div/div[3]/div/b").text
+        assert  search_text == 'Search results for "Slack"'
+"""
+
+driver1 = Driver()
+emailC = EmailCount()
+emailC.getEmailFields()
+emailE= EnterEmail()
+emailE.enter_wrong_email()
+emailE.enter_correct_email()
+featureT = FeatureTab()
+featureT.clickFeaturesTab()
+featureT.clickContactUS()
+driver1.closer()
